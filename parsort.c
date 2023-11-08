@@ -110,10 +110,42 @@ int main(int argc, char **argv) {
   }
 
   // TODO: open the file
+  int openFile(char* filename) {
+    int fd = open(filename, O_RDWR);
+    if (fd < 0) {
+      // file couldn't be opened: handle error and exit
+    }
+    return fd;
+  }
 
   // TODO: use fstat to determine the size of the file
+  size_t fileSize(char* filename) {
+    struct stat statbuf;
+    int fd = openFile(filename)
+    int rc = fstat(fd, &statbuf);
+    if (rc != 0) {
+        // handle fstat error and exit
+    }
+    size_t file_size_in_bytes = statbuf.st_size;
+    return file_size_in_bytes;
+  }
 
   // TODO: map the file into memory using mmap
+  int64_t* mapFile(char* filename) {
+    size_t file_size_in_bytes = fileSize(filename);
+    int64_t *data = mmap(NULL, file_size_in_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // you should immediately close the file descriptor here since mmap maintains a separate
+    // reference to the file and all open fds will gets duplicated to the children, which will
+    // cause fd in-use-at-exit leaks.
+    // TODO: call close()
+    if (data == MAP_FAILED) {
+        // handle mmap error and exit
+    }
+    // *data now behaves like a standard array of int64_t. Be careful though! Going off the end
+    // of the array will silently extend the file, which can rapidly lead to disk space
+    // depletion!
+    return data;
+  }
 
   // TODO: sort the data!
 
