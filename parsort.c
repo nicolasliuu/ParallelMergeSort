@@ -71,8 +71,76 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   size_t mid = begin + size/2;
 
   // TODO: parallelize the recursive sorting
-  merge_sort(arr, begin, mid, threshold);
-  merge_sort(arr, mid, end, threshold);
+  // merge_sort(arr, begin, mid, threshold);
+  // merge_sort(arr, mid, end, threshold);
+  pid_t pid_left = fork();//parallel merge for left half of array
+  if (pid_left == -1) {
+      // fork failed to start a new process
+      // handle the error and exit
+      printf("%s", "Error: fork failed to start a new process");
+      return;
+  } else if (pid_left == 0) {
+      // this is now in the child process
+      merge_sort(arr, begin, mid, threshold);
+      exit(0);
+  }
+  // if pid is not 0, we are in the parent process
+
+  pid_t pid_right = fork();//parallel merge for right half of array
+  if (pid_right == -1) {
+      // fork failed to start a new process
+      // handle the error and exit
+      printf("%s", "Error: fork failed to start a new process");
+      return;
+  } else if (pid_right == 0) {
+      // this is now in the child process
+      merge_sort(arr, mid, end, threshold);
+      exit(0);
+  }  
+  // if pid is not 0, we are in the parent process
+
+  //wait for left and right child to be done
+  int left_wstatus; //separate wstatus and waitpid for left and right child
+  // blocks until the process indentified by pid_to_wait_for completes
+  pid_t actual_left_pid = waitpid(pid_left, &left_wstatus, 0);
+  if (actual_left_pid == -1) {
+      // handle waitpid failure
+    printf("%s", "Error: waitpid failure");
+    return;
+  }
+  if (!WIFEXITED(left_wstatus)) {
+    // subprocess crashed, was interrupted, or did not exit normally
+    // handle as error
+    printf("%s", "Error: subprocess crashed, was interrupted, or did not exit normally");
+    return;
+  }
+  if (WEXITSTATUS(left_wstatus) != 0) {
+      // subprocess returned a non-zero exit code
+      // if following standard UNIX conventions, this is also an error
+    printf("%s", "Error: subprocess returned a non-zero exit code");
+    return;
+  }
+
+  int right_wstatus; //separate wstatus and waitpid for left and right child
+  // blocks until the process indentified by pid_to_wait_for completes
+  pid_t actual_right_pid = waitpid(pid_right, &right_wstatus, 0);
+  if (actual_right_pid == -1) {
+      // handle waitpid failure
+    printf("%s", "Error: waitpid failure");
+    return;
+  }
+  if (!WIFEXITED(right_wstatus)) {
+  // subprocess crashed, was interrupted, or did not exit normally
+  // handle as error
+    printf("%s", "Error: subprocess crashed, was interrupted, or did not exit normally");
+    return;
+  }
+  if (WEXITSTATUS(right_wstatus) != 0) {
+      // subprocess returned a non-zero exit code
+      // if following standard UNIX conventions, this is also an error
+    printf("%s", "Error: subprocess returned a non-zero exit code");
+    return;
+  }
 
   // allocate temp array now, so we can avoid unnecessary work
   // if the malloc fails
@@ -92,6 +160,10 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   free(temp_arr);
 
   // success!
+}
+
+int isSorted(int64_t *arr) {
+  //TODO: return 1 if array sorted, 0 if not
 }
 
 int main(int argc, char **argv) {
@@ -114,6 +186,8 @@ int main(int argc, char **argv) {
     int fd = open(filename, O_RDWR);
     if (fd < 0) {
       // file couldn't be opened: handle error and exit
+      printf("%s", "file couldn't be opened\n");
+      return;
     }
 
   // TODO: use fstat to determine the size of the file
@@ -121,6 +195,8 @@ int main(int argc, char **argv) {
     int rc = fstat(fd, &statbuf);
     if (rc != 0) {
         // handle fstat error and exit
+      printf("%s", "fstat error\n");
+      return;
     }
     size_t file_size_in_bytes = statbuf.st_size;
 
@@ -132,14 +208,35 @@ int main(int argc, char **argv) {
     // TODO: call close()
     if (data == MAP_FAILED) {
         // handle mmap error and exit
+      printf("%s", "mmap error\n");
+      return;
     }
     // *data now behaves like a standard array of int64_t. Be careful though! Going off the end
     // of the array will silently extend the file, which can rapidly lead to disk space
     // depletion!
 
   // TODO: sort the data!
+  int dataLength = sizeof(data) / sizeof(data[0]);
+
+  for(int i = 0; i < dataLength; i++) {//print data before sort
+    printf("%d, %s", data[i], ", ");
+  }
+  printf("%s", "\n");
+
+  merge_sort(data, 0, dataLength, threshold);
+
+  for(int i = 0; i < dataLength; i++) {//print data after sort
+  printf("%d, %s", data[i], ", ");
+  }
+  printf("%s", "\n");
 
   // TODO: unmap and close the file
+  munmap(data, dataLength);
+  close(fd);
 
   // TODO: exit with a 0 exit code if sort was successful
+  if (isSorted == 1) {
+    return 0;
+  }
+  return 1;
 }
