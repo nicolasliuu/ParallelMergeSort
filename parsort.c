@@ -73,6 +73,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // TODO: parallelize the recursive sorting
   // merge_sort(arr, begin, mid, threshold);
   // merge_sort(arr, mid, end, threshold);
+  //fork left child to sort left half of array
   pid_t pid_left = fork();//parallel merge for left half of array
   if (pid_left == -1) {
       // fork failed to start a new process
@@ -164,10 +165,6 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // success!
 }
 
-int isSorted(int64_t *arr) {
-  //TODO: return 1 if array sorted, 0 if not
-}
-
 int main(int argc, char **argv) {
   // check for correct number of command line arguments
   if (argc != 3) {
@@ -223,13 +220,15 @@ int main(int argc, char **argv) {
 
   // printf("%ld", file_size_in_bytes);
 
+  printf("unsorted:\n");
   for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data before sort
     printf("%ld, ", data[i]);
   }
-  printf("%s", "\n");
+  printf("%s", "\n\n");
 
-  merge_sort(data, 0, file_size_in_bytes, threshold);
+  merge_sort(data, 0, file_size_in_bytes / 8, threshold);
 
+  printf("sorted:\n");
   for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data after sort
   printf("%ld, ", data[i]);
   }
@@ -240,8 +239,6 @@ int main(int argc, char **argv) {
   // close(fd);
 
   // TODO: exit with a 0 exit code if sort was successful
-  if (isSorted == 1) {
-    return 0;
-  }
+
   return 0;
 }
