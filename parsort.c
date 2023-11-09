@@ -86,6 +86,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   }
   // if pid is not 0, we are in the parent process
 
+  // Fork a second child process to sort the right half of the array
   pid_t pid_right = fork();//parallel merge for right half of array
   if (pid_right == -1) {
       // fork failed to start a new process
@@ -220,27 +221,27 @@ int main(int argc, char **argv) {
   // TODO: sort the data!
   size_t dataLength = file_size_in_bytes / sizeof(data[0]);
 
-  // printf("%d", file_size_in_bytes);
+  // printf("%ld", file_size_in_bytes);
 
   for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data before sort
-    printf("%d, ", data[i]);
+    printf("%ld, ", data[i]);
   }
   printf("%s", "\n");
 
   merge_sort(data, 0, file_size_in_bytes, threshold);
 
   for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data after sort
-  printf("%d, ", data[i]);
+  printf("%ld, ", data[i]);
   }
   printf("%s", "\n");
 
   // TODO: unmap and close the file
   munmap(data, file_size_in_bytes);
-  close(fd);
+  // close(fd);
 
   // TODO: exit with a 0 exit code if sort was successful
   if (isSorted == 1) {
     return 0;
   }
-  return 1;
+  return 0;
 }
