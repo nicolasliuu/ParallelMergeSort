@@ -145,8 +145,9 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
   // allocate temp array now, so we can avoid unnecessary work
   // if the malloc fails
   int64_t *temp_arr = (int64_t *) malloc(size * sizeof(int64_t));
-  if (temp_arr == NULL)
+  if (temp_arr == NULL) {
     fatal("malloc() failed");
+  }
 
   // child processes completed successfully, so in theory
   // we should be able to merge their results
@@ -187,7 +188,7 @@ int main(int argc, char **argv) {
     if (fd < 0) {
       // file couldn't be opened: handle error and exit
       printf("%s", "file couldn't be opened\n");
-      return;
+      return 1;
     }
 
   // TODO: use fstat to determine the size of the file
@@ -196,7 +197,7 @@ int main(int argc, char **argv) {
     if (rc != 0) {
         // handle fstat error and exit
       printf("%s", "fstat error\n");
-      return;
+      return 1;
     }
     size_t file_size_in_bytes = statbuf.st_size;
 
@@ -205,33 +206,36 @@ int main(int argc, char **argv) {
     // you should immediately close the file descriptor here since mmap maintains a separate
     // reference to the file and all open fds will gets duplicated to the children, which will
     // cause fd in-use-at-exit leaks.
+    close(fd);
     // TODO: call close()
     if (data == MAP_FAILED) {
         // handle mmap error and exit
       printf("%s", "mmap error\n");
-      return;
+      return 1;
     }
     // *data now behaves like a standard array of int64_t. Be careful though! Going off the end
     // of the array will silently extend the file, which can rapidly lead to disk space
     // depletion!
 
   // TODO: sort the data!
-  int dataLength = sizeof(data) / sizeof(data[0]);
+  size_t dataLength = file_size_in_bytes / sizeof(data[0]);
 
-  for(int i = 0; i < dataLength; i++) {//print data before sort
-    printf("%d, %s", data[i], ", ");
+  // printf("%d", file_size_in_bytes);
+
+  for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data before sort
+    printf("%d, ", data[i]);
   }
   printf("%s", "\n");
 
-  merge_sort(data, 0, dataLength, threshold);
+  merge_sort(data, 0, file_size_in_bytes, threshold);
 
-  for(int i = 0; i < dataLength; i++) {//print data after sort
-  printf("%d, %s", data[i], ", ");
+  for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data after sort
+  printf("%d, ", data[i]);
   }
   printf("%s", "\n");
 
   // TODO: unmap and close the file
-  munmap(data, dataLength);
+  munmap(data, file_size_in_bytes);
   close(fd);
 
   // TODO: exit with a 0 exit code if sort was successful
