@@ -5,7 +5,8 @@ Jayden:
 - implemented and debugged parallel mergesort
 Nicolas:
 - implemented error handling
-- implemented and debugged parallel mergesort
+- debugged parallel mergesort
+- wrote README
 
 REPORT
 
