@@ -193,25 +193,10 @@ int main(int argc, char **argv) {
       return 1;
     }
 
-  // fprintf("unsorted:\n");
-  // for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data before sort
-  //   fprintf("%ld, ", data[i]);
-  // }
-  // fprintf("%s", "\n\n");
-
   merge_sort(data, 0, file_size_in_bytes / 8, threshold);
-
-  // fprintf("sorted:\n");
-  // for(size_t i = 0; i < file_size_in_bytes / 8; i++) {//print data after sort
-  // fprintf("%ld, ", data[i]);
-  // }
-  // fprintf("%s", "\n");
 
   //unmap and close the file
   munmap(data, file_size_in_bytes);
-  // close(fd);
-
-  // TODO: exit with a 0 exit code if sort was successful
 
   return 0;
 }

@@ -1,12 +1,13 @@
 CONTRIBUTIONS
 
-TODO: write a brief summary of how each team member contributed to
-the project.
+Jayden:
+- implemented file processing
+- implemented and debugged parallel mergesort
+Nicolas:
+- implemented error handling
+- implemented and debugged parallel mergesort
 
 REPORT
-
-TODO: add your report according to the instructions in the
-"Experiments and analysis" section of the assignment description.
 
 Experiment Results:
 
